@@ -1,4 +1,3 @@
-
 # 🏦 Secure Banking System REST API
 
 A highly optimized, secure, and robust Banking System backend built with **ASP.NET Core 8 Web API**. This system is engineered to handle critical financial operations with absolute data integrity, supporting features like optimistic concurrency, transactional audit trails, clean domain isolation, and role-based access control (Banker & Customer).
@@ -127,10 +126,12 @@ Special thanks to the following mentors for their continuous technical guidance,
 
 | Name | LinkedIn |
 | --- | --- |
-| **AbdALlatif Hossni** | [linkedin.com/in/abdallatif-hossni](https://www.google.com/search?q=https://www.linkedin.com/in/abdallatif-hossni-9217091b9/) |
+| **AbdALlatif Hossni** | [linkedin.com/in/abdallatif-hossni](https://www.linkedin.com/in/abdallatif-hossni-9217091b9/) |
+| **Omar Ahmed** | [linkedin.com/in/omar-ahmed](https://www.linkedin.com/in/omar-ahmed-33a467298/) |
 
 ---
-
 ## 📜 License
-
 This project is open-source and available under the MIT License.
+```
+
+```
