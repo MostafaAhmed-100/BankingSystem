@@ -15,6 +15,8 @@ namespace BankingSystem.Data.Configurations
                    .WithOne(u => u.Banker)
                    .HasForeignKey<Banker>(b => b.UserId);
 
+            builder.HasQueryFilter(a => a.IsActive == true);
+
             builder.HasOne(b => b.Branch)
                    .WithMany()
                    .HasForeignKey(b => b.BranchId)

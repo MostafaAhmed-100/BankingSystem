@@ -13,6 +13,7 @@ namespace BankingSystem.Data.Configurations
             builder.Property(c => c.Name).HasMaxLength(100);
             builder.Property(c => c.Street).HasMaxLength(150);
             builder.Property(c => c.City).HasMaxLength(100);
+            builder.HasQueryFilter(a => a.IsActive == true);
 
             builder.HasOne(c => c.user)
                    .WithOne(u => u.Customer)

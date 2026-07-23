@@ -11,6 +11,7 @@ namespace BankingSystem.Data.Configurations
             builder.HasKey(c => c.CardNumber);
             builder.Property(c => c.CardNumber).HasMaxLength(16);
             builder.Property(c => c.CardType).HasMaxLength(50);
+            builder.HasQueryFilter(a => a.IsActive == true);
 
             builder.Property(c => c.Limit).HasColumnType("decimal(18,2)");
 

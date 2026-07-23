@@ -12,8 +12,9 @@ namespace BankingSystem.Data.Configurations
 
             builder.Property(a => a.Balance).HasColumnType("decimal(18,2)");
             builder.Property(a => a.CurrencyCode).HasMaxLength(3);
-
             builder.Property(a => a.RowVersion).IsRowVersion();
+
+            builder.HasQueryFilter(a => a.IsActive == true);
 
             builder.HasOne(a => a.Customer)
                    .WithMany(c => c.Accounts)
