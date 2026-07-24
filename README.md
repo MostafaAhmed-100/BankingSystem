@@ -160,7 +160,7 @@ Every endpoint returns the exact same wrapper shape (`ApiResponseDto<T>`), makin
 
 ```bash
 # Clone the repository
-git clone https://github.com/MostafaAhmed-100/Banking-System-API.git
+git clone [https://github.com/MostafaAhmed-100/Banking-System-API.git](https://github.com/MostafaAhmed-100/Banking-System-API.git)
 cd Banking-System-API
 
 # Restore dependencies and update the database
@@ -182,5 +182,12 @@ Special thanks to the following mentors for their continuous technical guidance,
 | --- | --- |
 | **AbdALlatif Hossni** | [linkedin.com/in/abdallatif-hossni](https://www.linkedin.com/in/abdallatif-hossni-9217091b9/) |
 
+---
+
 ## 📜 License
+
 This project is open-source and available under the MIT License.
+
+```
+
+```
