@@ -11,26 +11,37 @@ A highly optimized, secure, and robust Banking System backend built with **ASP.N
 | **Database** | SQL Server |
 | **Auth** | ASP.NET Core Identity + JWT Bearer |
 | **Architecture** | Clean Architecture + Repository Pattern + Unit of Work |
+| **Object Mapping** | AutoMapper |
+| **Input Validation** | Fluent Validation + C# 11 `required` modifiers |
 | **Logging** | Serilog (File & Console Sinks, Transaction Tracking) |
 | **Concurrency** | EF Core Optimistic Concurrency (`RowVersion`) |
-| **Security** | Role-Based Authorization (Banker / Customer) |
+| **Error Handling** | Custom Exception Middleware + Domain Exceptions |
 
 ## 🏗️ Project Structure
 
 ```text
-├── Controllers/               # API endpoints (Thin layer routing requests)
-├── Services/                  # Business logic & Financial rules 
-├── Repository/
-│   ├── GenericRepository/     # Base CRUD operations (with AsNoTracking support)
-│   ├── SpecificRepository/    # Domain-specific queries (e.g., GetAccountWithHistory)
-│   └── UnitOfWork/            # Centralized transaction management (ACID properties)
-├── Entities/                  # EF Core models (Clean POCOs, zero Data Annotations)
-├── DTOs/                      # Data Transfer Objects for Request/Response mapping
-├── Configurations/            # Fluent API configurations for absolute DB schema control
-├── Middlewares/               # Custom pipeline (Global Exception Handling)
 ├── Constants/                 # AppRoles, TransactionTypes
-└── Data/
-    └── AppDbContext           # Context and Migrations
+├── Controllers/               # API endpoints (Thin layer routing requests)
+├── Data/                      # Database context, Entities, and DB Configurations
+│   ├── Configurations/        # Fluent API configurations for absolute DB schema control
+│   ├── models/                # EF Core models (Clean POCOs, zero Data Annotations)
+│   └── AppDbContext.cs
+├── DTOS/                      # Data Transfer Objects organized by domain
+│   ├── AccountDTOs/
+│   ├── Auth&IdentityDTOs/
+│   ├── CreditCards&Loans/
+│   ├── PaymentGateway/
+│   ├── Transactions&Transfers/
+│   ├── Validators/            # Fluent Validation rules isolated from DTOs
+│   └── Shared/                # Shared wrappers (e.g., ApiResponseDto)
+├── Exceptions/                # Domain-specific custom exceptions
+├── Mappings/                  # AutoMapper Profiles (Domain-to-DTO transformation)
+├── Middlewares/               # Custom pipeline (Global Exception Handling)
+├── Migrations/                # EF Core migration history
+└── Repository/                # Data access layer
+    ├── GenericRepository/     # Base CRUD operations
+    ├── SpecificRepository/    # Domain-specific queries (e.g., AccountRepository)
+    └── UnitOfWork/            # Centralized transaction management (ACID properties)
 
 ```
 
@@ -55,13 +66,38 @@ To prevent "Double Spending" or race conditions when multiple transactions occur
 
 Balances are never modified without a trace. Every financial movement (Deposit / Withdraw) is structurally logged as an immutable `Transaction` record tied to the specific account, establishing a strict, bank-grade ledger.
 
+### 🛡️ Clean Validation & Global Error Handling
+
+The project implements a robust observability and validation architecture:
+
+* **Strict Input Validation:** DTOs are protected using C# 11 `required` properties alongside `FluentValidation`.
+* **Centralized Exception Middleware:** Captures unhandled exceptions, logs them via **Serilog**, prevents app crashes, and maps them to standardized HTTP responses.
+* **Domain-Specific Exceptions:** Repetitive error returns in the Service Layer have been replaced with clean, domain-specific exceptions (e.g., `NotFoundException`, `ConflictException`, `BadRequestException`).
+
 ### 🗄️ Clean Database Architecture
 
-The data layer relies completely on **Fluent API** (`IEntityTypeConfiguration`), stripping all Data Annotations from domain models. This prevents multiple cascade paths, explicitly handles many-to-many relationships (e.g., `CustomerBankers`), and precisely defines decimal scales (e.g., `decimal(18,2)`) to prevent rounding errors.
+The data layer relies completely on **Fluent API** (`IEntityTypeConfiguration`), stripping all Data Annotations from domain models. This prevents multiple cascade paths, explicitly handles many-to-many relationships (e.g., `CustomerBankers`), and precisely defines decimal scales (e.g., `decimal(18,2)`) to prevent rounding errors. All list endpoints execute memory-optimized paging natively at the database level.
 
-### 🗑️ Soft Deletion Strategy
+---
 
-Critical financial entities (like Accounts, Cards, and Customers) are never hard-deleted from the database. A strict `IsActive` flag governs state changes to maintain referential integrity and historical reporting.
+## 📁 Unified Response Format
+
+Every endpoint returns the exact same wrapper shape (`ApiResponseDto<T>`), making frontend or third-party integration (like E-Commerce Payment Gateways) seamless.
+
+**Example: Success Response (200 OK)**
+
+```json
+{
+  "isSuccess": true,
+  "statusCode": 200,
+  "message": "Operation successful.",
+  "data": {
+    "accountNumber": 123456,
+    "balance": 5000.00
+  }
+}
+
+```
 
 ---
 
@@ -127,11 +163,9 @@ Special thanks to the following mentors for their continuous technical guidance,
 | Name | LinkedIn |
 | --- | --- |
 | **AbdALlatif Hossni** | [linkedin.com/in/abdallatif-hossni](https://www.linkedin.com/in/abdallatif-hossni-9217091b9/) |
-| **Omar Ahmed** | [linkedin.com/in/omar-ahmed](https://www.linkedin.com/in/omar-ahmed-33a467298/) |
 
 ---
-## 📜 License
-This project is open-source and available under the MIT License.
-```
 
-```
+## 📜 License
+
+This project is open-source and available under the MIT License.
