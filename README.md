@@ -1,6 +1,6 @@
 # 🏦 Secure Banking System REST API
 
-A highly optimized, secure, and robust Banking System backend built with **ASP.NET Core 8 Web API**. This system is engineered to handle critical financial operations with absolute data integrity, supporting features like optimistic concurrency, transactional audit trails, clean domain isolation, and role-based access control (Banker & Customer).
+A highly optimized, secure, and robust Banking System backend built with **ASP.NET Core 8 Web API**. This system is engineered to handle critical financial operations with absolute data integrity, supporting features like optimistic concurrency, transactional audit trails, clean domain isolation, payment gateway processing, and role-based access control (Banker & Customer).
 
 ## 🚀 Tech Stack
 
@@ -9,10 +9,11 @@ A highly optimized, secure, and robust Banking System backend built with **ASP.N
 | **Framework** | ASP.NET Core 8 Web API |
 | **ORM** | Entity Framework Core (Pure Fluent API) |
 | **Database** | SQL Server |
-| **Auth** | ASP.NET Core Identity + JWT Bearer |
+| **Auth & Identity** | ASP.NET Core Identity + JWT Bearer + Refresh Token Rotation |
 | **Architecture** | Clean Architecture + Repository Pattern + Unit of Work |
 | **Object Mapping** | AutoMapper |
 | **Input Validation** | Fluent Validation + C# 11 `required` modifiers |
+| **Email Service** | SMTP / MailKit (Account Confirmation & Password Reset) |
 | **Logging** | Serilog (File & Console Sinks, Transaction Tracking) |
 | **Concurrency** | EF Core Optimistic Concurrency (`RowVersion`) |
 | **Error Handling** | Custom Exception Middleware + Domain Exceptions |
@@ -24,24 +25,28 @@ A highly optimized, secure, and robust Banking System backend built with **ASP.N
 ├── Controllers/               # API endpoints (Thin layer routing requests)
 ├── Data/                      # Database context, Entities, and DB Configurations
 │   ├── Configurations/        # Fluent API configurations for absolute DB schema control
-│   ├── models/                # EF Core models (Clean POCOs, zero Data Annotations)
+│   ├── models/                # EF Core models (Account, CreditCard, RefreshToken, Transaction, etc.)
 │   └── AppDbContext.cs
 ├── DTOS/                      # Data Transfer Objects organized by domain
 │   ├── AccountDTOs/
 │   ├── Auth&IdentityDTOs/
 │   ├── CreditCards&Loans/
-│   ├── PaymentGateway/
-│   ├── Transactions&Transfers/
+│   ├── PaymentGatewayDTOs/    # ChargeCard, Refund, and CardValidation DTOs
+│   ├── Transactions&Transfers/# Transaction, Transfer, and Statement DTOs
 │   ├── Validators/            # Fluent Validation rules isolated from DTOs
-│   └── Shared/                # Shared wrappers (e.g., ApiResponseDto)
+│   └── Shared/                # Shared wrappers (e.g., ApiResponseDto, PaginationRequestDto)
 ├── Exceptions/                # Domain-specific custom exceptions
 ├── Mappings/                  # AutoMapper Profiles (Domain-to-DTO transformation)
 ├── Middlewares/               # Custom pipeline (Global Exception Handling)
-├── Migrations/                # EF Core migration history
-└── Repository/                # Data access layer
-    ├── GenericRepository/     # Base CRUD operations
-    ├── SpecificRepository/    # Domain-specific queries (e.g., AccountRepository)
-    └── UnitOfWork/            # Centralized transaction management (ACID properties)
+├── Migrations/                # EF Core migration history & schema snapshots
+├── Repository/                # Data access layer
+│   ├── GenericRepository/     # Base CRUD operations
+│   ├── SpecificRepository/    # Domain-specific queries (Account, CreditCard, Transaction)
+│   └── UnitOfWork/            # Centralized transaction management (ACID properties)
+└── Services/                  # Business Logic Layer
+    ├── Auth/                  # Identity, Token Generation & Refresh Logic
+    ├── EmailService/          # Account confirmation & Password reset emails
+    └── PaymentGateway/        # External payment processing & Idempotent refunds
 
 ```
 
@@ -51,12 +56,24 @@ A highly optimized, secure, and robust Banking System backend built with **ASP.N
 
 | Role | Capabilities |
 | --- | --- |
-| `Banker` | Manages branches, registers new customers, reviews loan applications, and monitors overall banking activities. |
-| `Customer` | Browses owned accounts, manages credit cards, requests loans, and performs secure deposits/withdrawals. |
+| `Banker` | Manages branches, registers new customers/bankers, reviews loan applications, and monitors overall banking activities. |
+| `Customer` | Browses owned accounts, manages credit cards, requests loans, performs transfers, and views paginated transaction history. |
 
 ---
 
 ## 🛡️ Core Banking Features & Security
+
+### 🔐 Advanced Authentication & Refresh Token Flow
+
+* **JWT & Refresh Tokens:** Secure token issuance with sliding-expiration Refresh Tokens stored and validated in the database.
+* **Email Verification & Password Reset:** Integrated `EmailService` handles automated confirmation links and password recovery workflows upon user registration.
+
+### 💳 Enterprise Payment Gateway & Idempotency Protection
+
+* **External Charge & Refund Processing:** Acts as a secure payment gateway for third-party platforms (e.g., E-Commerce stores).
+* **Idempotency Protection (`ReferenceId`):** Prevents duplicate charges caused by network latency or repeated API calls using strict reference tracking.
+* **Double-Refund Prevention:** Tracks original transaction states to ensure a single payment cannot be refunded multiple times.
+* **Card Authentication:** Validates CVV, Expiration Date, and Active Status before authorizing charges or limit deductions.
 
 ### ⚡ Absolute Data Integrity (Concurrency)
 
@@ -64,25 +81,17 @@ To prevent "Double Spending" or race conditions when multiple transactions occur
 
 ### 📜 Immutable Transaction History (Audit Trail)
 
-Balances are never modified without a trace. Every financial movement (Deposit / Withdraw) is structurally logged as an immutable `Transaction` record tied to the specific account, establishing a strict, bank-grade ledger.
+Balances are never modified without a trace. Every financial movement (Deposit, Withdrawal, Transfer, Gateway Payment, Refund) is structurally logged as an immutable `Transaction` record tied to the specific account, establishing a strict, bank-grade ledger.
 
-### 🛡️ Clean Validation & Global Error Handling
+### 📊 Database-Level Pagination
 
-The project implements a robust observability and validation architecture:
-
-* **Strict Input Validation:** DTOs are protected using C# 11 `required` properties alongside `FluentValidation`.
-* **Centralized Exception Middleware:** Captures unhandled exceptions, logs them via **Serilog**, prevents app crashes, and maps them to standardized HTTP responses.
-* **Domain-Specific Exceptions:** Repetitive error returns in the Service Layer have been replaced with clean, domain-specific exceptions (e.g., `NotFoundException`, `ConflictException`, `BadRequestException`).
-
-### 🗄️ Clean Database Architecture
-
-The data layer relies completely on **Fluent API** (`IEntityTypeConfiguration`), stripping all Data Annotations from domain models. This prevents multiple cascade paths, explicitly handles many-to-many relationships (e.g., `CustomerBankers`), and precisely defines decimal scales (e.g., `decimal(18,2)`) to prevent rounding errors. All list endpoints execute memory-optimized paging natively at the database level.
+All listing endpoints (Accounts, Credit Cards, Transaction Statements) perform memory-optimized pagination natively on the database server using `Skip()` and `Take()`.
 
 ---
 
 ## 📁 Unified Response Format
 
-Every endpoint returns the exact same wrapper shape (`ApiResponseDto<T>`), making frontend or third-party integration (like E-Commerce Payment Gateways) seamless.
+Every endpoint returns the exact same wrapper shape (`ApiResponseDto<T>`), making frontend or third-party integration seamless.
 
 **Example: Success Response (200 OK)**
 
@@ -130,7 +139,16 @@ Every endpoint returns the exact same wrapper shape (`ApiResponseDto<T>`), makin
   "Jwt": {
     "Key": "your_highly_secure_jwt_secret_key_here",
     "Issuer": "https://localhost:7132/",
-    "Audience": "APISecureUser"
+    "Audience": "APISecureUser",
+    "DurationInMinutes": 60
+  },
+  "EmailSettings": {
+    "SmtpServer": "smtp.gmail.com",
+    "Port": 587,
+    "SenderName": "Secure Banking System",
+    "SenderEmail": "no-reply@securebank.com",
+    "Username": "your_email@gmail.com",
+    "Password": "your_app_password"
   }
 }
 
@@ -142,7 +160,7 @@ Every endpoint returns the exact same wrapper shape (`ApiResponseDto<T>`), makin
 
 ```bash
 # Clone the repository
-git clone [https://github.com/MostafaAhmed-100/Banking-System-API.git](https://github.com/MostafaAhmed-100/Banking-System-API.git)
+git clone https://github.com/MostafaAhmed-100/Banking-System-API.git
 cd Banking-System-API
 
 # Restore dependencies and update the database
@@ -164,8 +182,5 @@ Special thanks to the following mentors for their continuous technical guidance,
 | --- | --- |
 | **AbdALlatif Hossni** | [linkedin.com/in/abdallatif-hossni](https://www.linkedin.com/in/abdallatif-hossni-9217091b9/) |
 
----
-
 ## 📜 License
-
 This project is open-source and available under the MIT License.
