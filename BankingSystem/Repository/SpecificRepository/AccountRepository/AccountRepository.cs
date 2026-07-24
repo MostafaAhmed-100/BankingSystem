@@ -30,5 +30,23 @@ namespace BankingSystem.Repository.SpecificRepository.AccountRepository
 
             return await query.ToListAsync();
         }
+        public async Task<(IEnumerable<Account> accounts, int totalCount)> GetAccountsByCustomerIdPaginatedAsync(int customerId, int pageNumber, int pageSize, bool trackChanges)
+        {
+            var query = _AppDbcontext.Accounts.Where(a => a.CustomerId == customerId);
+
+            if (!trackChanges)
+            {
+                query = query.AsNoTracking();
+            }
+
+            int totalCount = await query.CountAsync();
+            var accounts = await query
+                .OrderByDescending(a => a.CreatedAt) 
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (accounts, totalCount);
+        }
     }
 }

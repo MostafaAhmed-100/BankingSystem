@@ -4,10 +4,10 @@ using BankingSystem.Repository.CreditCardRepository;
 using BankingSystem.Repository.LoanRepository;
 using BankingSystem.Repository.SpecificRepository.AccountRepository;
 using BankingSystem.Repository.SpecificRepository.CustomerRepository;
+using BankingSystem.Repository.SpecificRepository.RefreshTokenRepository;
 using BankingSystem.Repository.SpecificRepository.TransactionRepository;
 using Microsoft.EntityFrameworkCore.Storage;
-
-namespace BankingSystem.Repository.UnitOfWork
+namespace BankingSystem.Repository.GenericRepository.UnitOfWork
 {
     public class UnitOfWork : IUnitOfWork
     {
@@ -19,6 +19,7 @@ namespace BankingSystem.Repository.UnitOfWork
         public IBankerRepository Bankers { get; private set; }
         public ICreditCardRepository CreditCards { get; private set; }
         public ILoanRepository Loans { get; private set; }
+        public IRefreshTokenRepository RefreshTokens { get; private set; }
 
         public UnitOfWork(AppDbContext context)
         {
@@ -29,9 +30,10 @@ namespace BankingSystem.Repository.UnitOfWork
             Bankers = new BankerRepository.BankerRepository(_context);
             CreditCards = new CreditCardRepository.CreditCardRepository(_context);
             Loans = new LoanRepository.LoanRepository(_context);
+            RefreshTokens = new RefreshTokenRepository(_context);
         }
 
-        public async Task<int> CompleteAsync()
+        public async Task<int> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync();
         }

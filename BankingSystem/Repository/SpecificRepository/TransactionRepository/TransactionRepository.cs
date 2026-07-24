@@ -11,6 +11,11 @@ namespace BankingSystem.Repository.SpecificRepository.TransactionRepository
         {
         }
 
+        public async Task<bool> ExistsByReferenceIdAsync(int referenceId)
+        {
+            return await _AppDbcontext.Transactions.AnyAsync(t => t.ReferenceId == referenceId);
+        }
+
         public async Task<(IEnumerable<Transaction> Items, int TotalCount)> GetTransactionsByAccountIdPaginatedAsync(int accountNumber, int pageNumber, int pageSize, bool trackChanges)
         {
             var query = _AppDbcontext.Transactions.Where(x => x.AccountNumber == accountNumber);

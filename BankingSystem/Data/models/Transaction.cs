@@ -6,7 +6,7 @@
         public required decimal Amount { get; set; }
         public required string Type { get; set; }
         public DateTime TransactionDate { get; set; } = DateTime.UtcNow;
-
+        public int? ReferenceId { get; set; } = null;
         public int AccountNumber { get; set; }
         public Account Account { get; set; }
     }

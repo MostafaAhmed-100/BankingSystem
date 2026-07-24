@@ -4,11 +4,11 @@ using BankingSystem.Middlewares;
 using BankingSystem.Repository.BankerRepository;
 using BankingSystem.Repository.CreditCardRepository;
 using BankingSystem.Repository.GenericRepository;
+using BankingSystem.Repository.GenericRepository.UnitOfWork;
 using BankingSystem.Repository.LoanRepository;
 using BankingSystem.Repository.SpecificRepository.AccountRepository;
 using BankingSystem.Repository.SpecificRepository.CustomerRepository;
 using BankingSystem.Repository.SpecificRepository.TransactionRepository;
-using BankingSystem.Repository.UnitOfWork;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 

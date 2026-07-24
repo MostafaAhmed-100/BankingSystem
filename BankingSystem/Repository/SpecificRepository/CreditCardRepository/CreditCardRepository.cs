@@ -30,5 +30,22 @@ namespace BankingSystem.Repository.CreditCardRepository
 
             return await ApplyPaginationAsync(query, pageNumber, pageSize);
         }
+        public async Task<(IEnumerable<CreditCard> cards, int totalCount)> GetCardsByCustomerIdPaginatedAsync(int customerId, int pageNumber, int pageSize, bool trackChanges)
+        {
+            var query = _AppDbcontext.CreditCards.Where(c => c.CustomerId == customerId);
+
+            if (!trackChanges)
+            {
+                query = query.AsNoTracking();
+            }
+            int totalCount = await query.CountAsync();
+
+            var cards = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (cards, totalCount);
+        }
     }
 }

@@ -3,10 +3,11 @@ using BankingSystem.Repository.CreditCardRepository;
 using BankingSystem.Repository.LoanRepository;
 using BankingSystem.Repository.SpecificRepository.AccountRepository;
 using BankingSystem.Repository.SpecificRepository.CustomerRepository;
+using BankingSystem.Repository.SpecificRepository.RefreshTokenRepository;
 using BankingSystem.Repository.SpecificRepository.TransactionRepository;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace BankingSystem.Repository.UnitOfWork
+namespace BankingSystem.Repository.GenericRepository.UnitOfWork
 {
     public interface IUnitOfWork : IDisposable
     {
@@ -16,8 +17,9 @@ namespace BankingSystem.Repository.UnitOfWork
         IBankerRepository Bankers { get; }
         ICreditCardRepository CreditCards { get; }
         ILoanRepository Loans { get; }
+        IRefreshTokenRepository RefreshTokens { get; }
 
-        Task<int> CompleteAsync();
+        Task<int> SaveChangesAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();
     }
 }

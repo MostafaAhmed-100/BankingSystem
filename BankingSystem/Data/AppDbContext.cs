@@ -17,6 +17,7 @@ namespace BankingSystem.Data
         public DbSet<CreditCard> CreditCards { get; set; }
         public DbSet<Loan> Loans { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

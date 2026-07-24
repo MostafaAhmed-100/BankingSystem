@@ -5,7 +5,7 @@
         public int AccountNumber { get; set; }
         public required decimal Balance { get; set; }
         public required string CurrencyCode { get; set; }
-        public required byte[] RowVersion { get; set; }
+        public  byte[] RowVersion { get; set; }
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public int CustomerId { get; set; }

@@ -4,6 +4,7 @@
     {
         public string CardNumber { get; set; }
         public string CardType { get; set; }
+        public string CVV { get; set; } 
         public required DateTime ExpireDate { get; set; }
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
