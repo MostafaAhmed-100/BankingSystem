@@ -1,5 +1,14 @@
 using BankingSystem.Data;
 using BankingSystem.Data.models;
+using BankingSystem.Middlewares;
+using BankingSystem.Repository.BankerRepository;
+using BankingSystem.Repository.CreditCardRepository;
+using BankingSystem.Repository.GenericRepository;
+using BankingSystem.Repository.LoanRepository;
+using BankingSystem.Repository.SpecificRepository.AccountRepository;
+using BankingSystem.Repository.SpecificRepository.CustomerRepository;
+using BankingSystem.Repository.SpecificRepository.TransactionRepository;
+using BankingSystem.Repository.UnitOfWork;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,16 +37,33 @@ namespace BankingSystem
             })
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
-
+            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            builder.Services.AddScoped<IAccountRepository , AccountRepository>();
+            builder.Services.AddScoped<IBankerRepository, BankerRepository>();
+            builder.Services.AddScoped<ICreditCardRepository, CreditCardRepository>();
+            builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+            builder.Services.AddScoped<ILoanRepository, LoanRepository>();
+            builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+            builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();
 
             var app = builder.Build();
+            app.UseMiddleware<ExceptionMiddleware>();
 
-            if (app.Environment.IsDevelopment())
+            app.Use(async (context, next) =>
             {
-                app.MapOpenApi();
-            }
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                context.Response.OnStarting(() =>
+                {
+                    watch.Stop();
+                    context.Response.Headers.Append("X-Response-Time", $"{watch.ElapsedMilliseconds} ms");
+                    return Task.CompletedTask;
+                });
+
+                await next();
+            });
 
             app.UseHttpsRedirection();
 
